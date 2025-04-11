@@ -67,3 +67,42 @@ void *safe_realloc(void *buf, size_t *curr_size, size_t new_size) {
 	*curr_size = new_size;
 	return buf;
 }
+
+/**
+ * @brief This serves as a safe wrapper to libc's reallocarray to handle failures
+ * 
+ * @param arr User passed array to be resized (grown)
+ * @param curr_memb Pointer to the current number of members array holds. This will be updated on success
+ * @param n_memb Requested number of members to grow to
+ * @param size Size of each member
+ * 
+ * @return Return pointer to newly allocated barray along with curr_memb updated
+ */
+void **safe_reallocarray(void **arr, size_t *curr_memb, size_t n_memb, size_t size) {
+	if (NULL == arr || NULL == curr_memb) {
+		return NULL;
+	}
+
+	if (n_memb <= *curr_memb) {
+		printf("Will not shrink array....returning original pointer and maintaining number of members\n");
+		return arr;
+	}
+
+	// Just in case we lose arr
+	void **tmp = arr;
+
+	if ((arr = reallocarray(arr, n_memb, size)) == NULL) {
+		// man realloc states that upon reallocarray failure the return is NULL and original block is left untouched. 
+		// This is unacceptable and we must free those inner pointers as well as the array itself. Luckily we have a helper
+		free_all(tmp);
+		return NULL;
+	}
+
+	// If we are successful there is still work to do. Just like safe_realloc we must initialize all our newly allocated members to NULL. This will save you from an invalid memory read when trying to loop over and free all your inner pointers. 
+	for (int i = *curr_memb; i < n_memb; i++) {
+		arr[i] = NULL;
+	}
+
+	*curr_memb = n_memb;
+	return arr;
+}
