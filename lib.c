@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "lib.h"
 
@@ -105,4 +106,23 @@ void **safe_reallocarray(void **arr, size_t *curr_memb, size_t n_memb, size_t si
 
 	*curr_memb = n_memb;
 	return arr;
+}
+
+// Maybe some useful string operations next?
+// strstr sort of does contains()
+// whats startswith() and endswith()?
+// thats more of a fancy strncmp but i could do that
+bool does_start_with(char *haystack, char *needle) {
+	if (NULL == haystack || NULL == needle) {
+		return false;
+	}
+
+	if (strlen(needle) > strlen(haystack)) {
+		return false;
+	}
+
+	if (strncmp(haystack, needle, strlen(needle)) == 0) {
+		return true;
+	}
+	return false;
 }
