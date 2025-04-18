@@ -1,8 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdbool.h>
-
 #include "lib.h"
 
 // No this library isnt copied/pasted from chatGPT or some shit like that. These are useful things ive learned about and needed over the years. It was also for some practice in C to keep my skillz sharp.
@@ -108,10 +103,14 @@ void **safe_reallocarray(void **arr, size_t *curr_memb, size_t n_memb, size_t si
 	return arr;
 }
 
-// Maybe some useful string operations next?
-// strstr sort of does contains()
-// whats startswith() and endswith()?
-// thats more of a fancy strncmp but i could do that
+/**
+ * @brief Check if string starts with a given sequence of bytes
+ * 
+ * @param haystack String to search
+ * @param needle Bytes to search for
+ * 
+ * @return true if found, false if not
+ */
 bool does_start_with(char *haystack, char *needle) {
 	if (NULL == haystack || NULL == needle) {
 		return false;
@@ -125,4 +124,74 @@ bool does_start_with(char *haystack, char *needle) {
 		return true;
 	}
 	return false;
+}
+
+/**
+ * @brief Combine two strings
+ * 
+ * @param str1 First string
+ * @param str2 Second string
+ * 
+ * @note Function will allocate memory for string. CALLER is responsible for freeing it
+ */
+char *build_str(char *str1, char *str2) {
+	if (NULL == str1 || NULL == str2) {
+		return NULL;
+	}
+
+	size_t len1 = strlen(str1);
+	size_t len2 = strlen(str2);
+
+	// The +1 is to ensure it is a NULL terminated string
+	char *final_str = (char *)calloc((len1 + len2) + 1, sizeof(uint8_t));
+	strncpy(final_str, str1, len1);
+	strncpy(final_str + len1, str2, len2);
+
+	return final_str;
+}
+
+/**
+ * @brief Remove any number of a given sequence occuring at the end of a string
+ * 
+ * @param haystack Original string to search
+ * @param needle Character sequence to search for and remove
+ * 
+ * @return A newly allocated string without ending sequence, NULL on failure
+ * 
+ * @note Function will allocate memory for string. CALLER is responsible for freeing it
+ */
+char *trim_ending_matches(char *haystack, char *needle) {
+	if (NULL == haystack || NULL == needle) {
+		return NULL;
+	}
+
+	if (strlen(needle) >= strlen(haystack)) {
+		printf("Ending match must be smaller than length of string\n");
+		return NULL;
+	}
+
+	size_t original_size = strlen(haystack);
+	size_t needle_size = strlen(needle);
+	// Get ending position
+	char *occurrence = haystack + (original_size - needle_size);
+	size_t chars_moved = 0;
+
+	// Does it even exist in our str, and if so is there one at the end?
+	while (chars_moved < original_size) {
+		printf("comparing: %s with: %s\n", occurrence, needle);
+		if ((strncmp(occurrence, needle, needle_size)) != 0) {
+			break;
+		}
+		occurrence -= needle_size;
+		chars_moved += needle_size;
+	}
+
+	printf("chars moved: %lu\n", chars_moved);
+
+	// Erm now we just create new string and return up until occurrence
+	size_t new_size = original_size - chars_moved;
+	char *new_str = (char *)calloc(new_size, sizeof(uint8_t));
+	strncpy(new_str, haystack, new_size);
+
+	return new_str;
 }
